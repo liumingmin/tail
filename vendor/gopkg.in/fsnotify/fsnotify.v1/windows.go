@@ -371,6 +371,10 @@ func (w *Watcher) startRead(watch *watch) error {
 // received events into Event objects and sends them via the Events channel.
 // Entry point to the I/O thread.
 func (w *Watcher) readEvents() {
+	defer func() {
+		recover()
+	}()
+
 	var (
 		n, key uint32
 		ov     *syscall.Overlapped

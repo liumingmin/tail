@@ -75,6 +75,9 @@ func (fw *InotifyFileWatcher) ChangeEvents(t *tomb.Tomb, pos int64) (*FileChange
 	fw.Size = pos
 
 	go func() {
+		defer func() {
+			recover()
+		}()
 
 		events := Events(fw.Filename)
 

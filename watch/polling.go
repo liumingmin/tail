@@ -57,6 +57,10 @@ func (fw *PollingFileWatcher) ChangeEvents(t *tomb.Tomb, pos int64) (*FileChange
 	fw.Size = pos
 
 	go func() {
+		defer func() {
+			recover()
+		}()
+
 		prevSize := fw.Size
 		for {
 			select {

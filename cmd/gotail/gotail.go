@@ -50,6 +50,10 @@ func main() {
 }
 
 func tailFile(filename string, config tail.Config, done chan bool) {
+	defer func() {
+		recover()
+	}()
+
 	defer func() { done <- true }()
 	t, err := tail.TailFile(filename, config)
 	if err != nil {

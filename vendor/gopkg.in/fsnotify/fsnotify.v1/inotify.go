@@ -157,6 +157,10 @@ type watch struct {
 // readEvents reads from the inotify file descriptor, converts the
 // received events into Event objects and sends them via the Events channel
 func (w *Watcher) readEvents() {
+	defer func() {
+		recover()
+	}()
+
 	var (
 		buf   [syscall.SizeofInotifyEvent * 4096]byte // Buffer for a maximum of 4096 raw events
 		n     int                                     // Number of bytes read with read()

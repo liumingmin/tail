@@ -214,6 +214,10 @@ func (shared *InotifyTracker) sendEvent(event fsnotify.Event) {
 // run starts the goroutine in which the shared struct reads events from its
 // Watcher's Event channel and sends the events to the appropriate Tail.
 func (shared *InotifyTracker) run() {
+	defer func() {
+		recover()
+	}()
+
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		util.Fatal("failed to create Watcher")

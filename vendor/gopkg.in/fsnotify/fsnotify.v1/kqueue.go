@@ -247,6 +247,10 @@ func (w *Watcher) addWatch(name string, flags uint32) error {
 // readEvents reads from kqueue and converts the received kevents into
 // Event values that it sends down the Events channel.
 func (w *Watcher) readEvents() {
+	defer func() {
+		recover()
+	}()
+
 	eventBuffer := make([]syscall.Kevent_t, 10)
 
 	for {

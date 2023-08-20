@@ -224,6 +224,10 @@ func (tail *Tail) readLine() (string, error) {
 }
 
 func (tail *Tail) tailFileSync() {
+	defer func() {
+		recover()
+	}()
+
 	defer tail.Done()
 	defer tail.close()
 
