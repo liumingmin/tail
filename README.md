@@ -25,12 +25,24 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 )
 
-replace github.com/hpcloud/tail v1.0.0 => github.com/liumingmin/tail v1.0.1
+replace github.com/hpcloud/tail v1.0.0 => github.com/liumingmin/tail v1.0.2
+```
+
+
+## go module  only use poll watch
+```
+require (
+	github.com/hpcloud/tail v1.0.0
+)
+
+require gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
+
+replace github.com/hpcloud/tail v1.0.0 => github.com/liumingmin/tail v1.1.0
 ```
 
 ## code usage
 ```Go
-t, err := tail.TailFile("/var/log/nginx.log", tail.Config{Follow: true})
+t, err := tail.TailFile("/var/log/nginx.log", tail.Config{Follow: true, Poll: true})
 for line := range t.Lines {
     fmt.Println(line.Text)
 }
