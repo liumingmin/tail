@@ -119,7 +119,7 @@ func TailFile(filename string, config Config) (*Tail, error) {
 	if t.Poll {
 		t.watcher = watch.NewPollingFileWatcher(filename)
 	} else {
-		t.watcher = watch.NewInotifyFileWatcher(filename)
+		//t.watcher = watch.NewInotifyFileWatcher(filename)
 	}
 
 	if t.MustExist {
@@ -437,5 +437,5 @@ func (tail *Tail) sendLine(line string) bool {
 // meant to be invoked from a process's exit handler. Linux kernel may not
 // automatically remove inotify watches after the process exits.
 func (tail *Tail) Cleanup() {
-	watch.Cleanup(tail.Filename)
+	//watch.Cleanup(tail.Filename)
 }
