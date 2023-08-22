@@ -120,7 +120,8 @@ func (fw *InotifyFileWatcher) ChangeEvents(t *tomb.Tomb, pos int64) (*FileChange
 						return
 					}
 					// XXX: report this error back to the user
-					util.Fatal("Failed to stat file %v: %v", fw.Filename, err)
+					util.Error("Failed to stat file %v: %v", fw.Filename, err)
+					return
 				}
 				fw.Size = fi.Size()
 

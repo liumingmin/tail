@@ -4,6 +4,7 @@
 package watch
 
 import (
+	"context"
 	"log"
 	"os"
 	"path/filepath"
@@ -16,14 +17,15 @@ import (
 )
 
 type InotifyTracker struct {
-	mux       sync.Mutex
-	watcher   *fsnotify.Watcher
-	chans     map[string]chan fsnotify.Event
-	done      map[string]chan bool
-	watchNums map[string]int
-	watch     chan *watchInfo
-	remove    chan *watchInfo
-	error     chan error
+	mux        sync.Mutex
+	watcher    *fsnotify.Watcher
+	chans      map[string]chan fsnotify.Event
+	done       map[string]chan bool
+	watchNums  map[string]int
+	watch      chan *watchInfo
+	remove     chan *watchInfo
+	error      chan error
+	cancelFunc context.CancelFunc
 }
 
 type watchInfo struct {
@@ -129,6 +131,12 @@ func Cleanup(fname string) error {
 	return RemoveWatch(fname)
 }
 
+func StopTracker() {
+	if shared != nil && shared.cancelFunc != nil {
+		shared.cancelFunc()
+	}
+}
+
 // watchFlags calls fsnotify.WatchFlags for the input filename and flags, creating
 // a new Watcher if the previous Watcher was closed.
 func (shared *InotifyTracker) addWatch(winfo *watchInfo) error {
@@ -220,12 +228,18 @@ func (shared *InotifyTracker) run() {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		util.Fatal("failed to create Watcher")
+		util.Error("failed to create Watcher")
+		return
 	}
 	shared.watcher = watcher
 
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	shared.cancelFunc = cancelFunc
+
 	for {
 		select {
+		case <-ctx.Done():
+			goto ExitFor
 		case winfo := <-shared.watch:
 			shared.error <- shared.addWatch(winfo)
 
@@ -249,4 +263,6 @@ func (shared *InotifyTracker) run() {
 			}
 		}
 	}
+
+ExitFor:
 }

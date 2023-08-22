@@ -81,7 +81,8 @@ func (fw *PollingFileWatcher) ChangeEvents(t *tomb.Tomb, pos int64) (*FileChange
 				}
 
 				// XXX: report this error back to the user
-				util.Fatal("Failed to stat file %v: %v", fw.Filename, err)
+				util.Error("Failed to stat file %v: %v", fw.Filename, err)
+				return
 			}
 
 			// File got moved/renamed?

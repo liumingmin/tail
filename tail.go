@@ -102,7 +102,8 @@ var (
 // `Lines` channel.
 func TailFile(filename string, config Config) (*Tail, error) {
 	if config.ReOpen && !config.Follow {
-		util.Fatal("cannot set ReOpen without Follow.")
+		util.Error("cannot set ReOpen without Follow.")
+		return nil, errors.New("cannot set ReOpen without Follow")
 	}
 
 	t := &Tail{
