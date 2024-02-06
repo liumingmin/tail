@@ -179,6 +179,9 @@ func (tail *Tail) close() {
 }
 
 func (tail *Tail) closeFile() {
+	tail.lk.Lock()
+	defer tail.lk.Unlock()
+
 	if tail.file != nil {
 		tail.file.Close()
 		tail.file = nil
@@ -419,7 +422,11 @@ func (tail *Tail) sendLine(line string) bool {
 	}
 
 	for _, line := range lines {
-		tail.Lines <- &Line{line, now, nil}
+		select {
+		case tail.Lines <- &Line{line, now, nil}:
+		case <-tail.Dying():
+			return true
+		}
 	}
 
 	if tail.Config.RateLimiter != nil {
