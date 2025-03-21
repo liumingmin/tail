@@ -87,6 +87,8 @@ type Tail struct {
 	tomb.Tomb // provides: Done, Kill, Dying
 
 	lk sync.Mutex
+
+	fileReaderWrapper func(io.Reader) io.Reader
 }
 
 var (
@@ -100,7 +102,7 @@ var (
 // via the `Tail.Lines` channel. To handle errors during tailing,
 // invoke the `Wait` or `Err` method after finishing reading from the
 // `Lines` channel.
-func TailFile(filename string, config Config) (*Tail, error) {
+func TailFile(filename string, config Config, options ...TailOption) (*Tail, error) {
 	if config.ReOpen && !config.Follow {
 		util.Error("cannot set ReOpen without Follow.")
 		return nil, errors.New("cannot set ReOpen without Follow")
@@ -124,6 +126,12 @@ func TailFile(filename string, config Config) (*Tail, error) {
 		t.file, err = OpenFile(t.Filename)
 		if err != nil {
 			return nil, err
+		}
+	}
+
+	if len(options) > 0 {
+		for _, option := range options {
+			option(t)
 		}
 	}
 
@@ -383,11 +391,16 @@ func (tail *Tail) waitForChanges() error {
 }
 
 func (tail *Tail) openReader() {
+	var r io.Reader = tail.file
+	if tail.fileReaderWrapper != nil {
+		r = tail.fileReaderWrapper(r)
+	}
+
 	if tail.MaxLineSize > 0 {
 		// add 2 to account for newline characters
-		tail.reader = bufio.NewReaderSize(tail.file, tail.MaxLineSize+2)
+		tail.reader = bufio.NewReaderSize(r, tail.MaxLineSize+2)
 	} else {
-		tail.reader = bufio.NewReader(tail.file)
+		tail.reader = bufio.NewReader(r)
 	}
 }
 
@@ -401,7 +414,11 @@ func (tail *Tail) seekTo(pos SeekInfo) error {
 		return fmt.Errorf("Seek error on %s: %s", tail.Filename, err)
 	}
 	// Reset the read buffer whenever the file is re-seek'ed
-	tail.reader.Reset(tail.file)
+	var r io.Reader = tail.file
+	if tail.fileReaderWrapper != nil {
+		r = tail.fileReaderWrapper(r)
+	}
+	tail.reader.Reset(r)
 	return nil
 }
 
@@ -442,4 +459,12 @@ func (tail *Tail) sendLine(line string) bool {
 // now not use inotify
 func (tail *Tail) Cleanup() {
 
+}
+
+type TailOption func(tail *Tail)
+
+func FileReaderWrapperOption(fileReaderWrapper func(io.Reader) io.Reader) TailOption {
+	return func(tail *Tail) {
+		tail.fileReaderWrapper = fileReaderWrapper
+	}
 }

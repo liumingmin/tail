@@ -12,6 +12,8 @@ A Go package striving to emulate the features of the BSD `tail` program.
 1. support go module and remove vendor dir
 2. upgrade dependent lib to latest version and go version up to go 1.17
 3. fix goroutine crash possibility
+4. remove inotify(v1.1.2)
+5. add fileReaderWrapper to process file stream, use FileReaderWrapperOption(v1.1.2)
 
 ## go module config usage
 ```
@@ -37,7 +39,7 @@ require (
 
 require gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 
-replace github.com/hpcloud/tail v1.0.0 => github.com/liumingmin/tail v1.1.0
+replace github.com/hpcloud/tail v1.0.0 => github.com/liumingmin/tail v1.1.2
 ```
 
 ## code usage
