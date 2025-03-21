@@ -6,6 +6,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/hpcloud/tail"
@@ -36,7 +37,7 @@ func main() {
 	}
 
 	if n != 0 {
-		config.Location = &tail.SeekInfo{-n, os.SEEK_END}
+		config.Location = &tail.SeekInfo{-n, io.SeekEnd}
 	}
 
 	done := make(chan bool)
@@ -44,7 +45,7 @@ func main() {
 		go tailFile(filename, config, done)
 	}
 
-	for _, _ = range flag.Args() {
+	for _ = range flag.Args() {
 		<-done
 	}
 }

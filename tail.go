@@ -117,11 +117,7 @@ func TailFile(filename string, config Config) (*Tail, error) {
 		t.Logger = log.New(os.Stderr, "", log.LstdFlags)
 	}
 
-	if t.Poll {
-		t.watcher = watch.NewPollingFileWatcher(filename)
-	} else {
-		t.watcher = watch.NewInotifyFileWatcher(filename)
-	}
+	t.watcher = watch.NewPollingFileWatcher(filename)
 
 	if t.MustExist {
 		var err error
@@ -144,7 +140,7 @@ func (tail *Tail) Tell() (offset int64, err error) {
 	if tail.file == nil {
 		return
 	}
-	offset, err = tail.file.Seek(0, os.SEEK_CUR)
+	offset, err = tail.file.Seek(0, io.SeekCurrent)
 	if err != nil {
 		return
 	}
@@ -344,7 +340,7 @@ func (tail *Tail) tailFileSync() {
 // reopened if ReOpen is true. Truncated files are always reopened.
 func (tail *Tail) waitForChanges() error {
 	if tail.changes == nil {
-		pos, err := tail.file.Seek(0, os.SEEK_CUR)
+		pos, err := tail.file.Seek(0, io.SeekCurrent)
 		if err != nil {
 			return err
 		}
@@ -384,7 +380,6 @@ func (tail *Tail) waitForChanges() error {
 	case <-tail.Dying():
 		return ErrStop
 	}
-	panic("unreachable")
 }
 
 func (tail *Tail) openReader() {
@@ -397,7 +392,7 @@ func (tail *Tail) openReader() {
 }
 
 func (tail *Tail) seekEnd() error {
-	return tail.seekTo(SeekInfo{Offset: 0, Whence: os.SEEK_END})
+	return tail.seekTo(SeekInfo{Offset: 0, Whence: io.SeekEnd})
 }
 
 func (tail *Tail) seekTo(pos SeekInfo) error {
@@ -444,6 +439,7 @@ func (tail *Tail) sendLine(line string) bool {
 // Cleanup removes inotify watches added by the tail package. This function is
 // meant to be invoked from a process's exit handler. Linux kernel may not
 // automatically remove inotify watches after the process exits.
+// now not use inotify
 func (tail *Tail) Cleanup() {
-	watch.Cleanup(tail.Filename)
+
 }
